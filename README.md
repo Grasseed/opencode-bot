@@ -16,6 +16,12 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 
 The installer keeps interactive prompts even with `curl | bash` by reading from your terminal (`/dev/tty`).
 
+The guided setup lets you:
+
+- move through options with the arrow keys
+- press Enter to confirm a selection
+- skip Telegram or model setup for now and configure later with `openfox configure`
+
 The installer will:
 
 - install `opencode` first plus required tools for the detected platform
@@ -153,6 +159,12 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 
 即使使用 `curl | bash`，安裝器也會透過終端（`/dev/tty`）保留互動式引導。
 
+這個引導流程支援：
+
+- 使用方向鍵上下選擇選項
+- 按 Enter 確認
+- 先跳過 Telegram 或模型設定，之後再用 `openfox configure` 補設定
+
 安裝器會：
 
 - 依照偵測到的平台優先安裝 `opencode` 與必要工具
@@ -289,6 +301,12 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 ```
 
 即使使用 `curl | bash`，安装器也会通过终端（`/dev/tty`）保持交互式引导。
+
+引导流程支持：
+
+- 使用方向键上下选择选项
+- 按 Enter 确认
+- 先跳过 Telegram 或模型配置，之后再用 `openfox configure` 补设定
 
 安装器会：
 

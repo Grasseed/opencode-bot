@@ -12,6 +12,7 @@ Usage:
   openfox start
   openfox stop
   openfox status
+  openfox configure
   openfox uninstall
   openfox help
 
@@ -73,6 +74,10 @@ uninstall_openfox() {
   bash "$SCRIPT_DIR/uninstall-openfox.sh" "$PROJECT_ROOT"
 }
 
+configure_openfox() {
+  OPENFOX_INSTALL_DIR="$PROJECT_ROOT" OPENFOX_SKIP_REPO_UPDATE=yes OPENFOX_START_NOW=no bash "$SCRIPT_DIR/install-openfox.sh" "$PROJECT_ROOT"
+}
+
 main() {
   local command="${1:-help}"
   case "$command" in
@@ -84,6 +89,9 @@ main() {
       ;;
     status)
       status_openfox
+      ;;
+    configure)
+      configure_openfox
       ;;
     uninstall)
       uninstall_openfox
