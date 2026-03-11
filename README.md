@@ -60,6 +60,7 @@ curl http://127.0.0.1:3000/health
 - `/help`
 - `/status`
 - `/usage`
+- `/skill`
 - `/reset`
 
 Any other text message is forwarded to `opencode run`.
@@ -151,6 +152,7 @@ curl http://127.0.0.1:3000/health
 - `/help`
 - `/status`
 - `/usage`
+- `/skill`
 - `/reset`
 
 其他文字訊息都會轉送給 `opencode run`。
@@ -242,6 +244,7 @@ curl http://127.0.0.1:3000/health
 - `/help`
 - `/status`
 - `/usage`
+- `/skill`
 - `/reset`
 
 其他文本消息都会转发给 `opencode run`。
