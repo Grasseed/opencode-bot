@@ -18,6 +18,7 @@ ROOT_PREFIX=()
 INTERACTIVE=0
 PROMPT_FD=0
 OPENCODE_READY=0
+READ_KEY_TIMEOUT=1
 
 log() {
   printf '[%s] %s\n' "$SCRIPT_NAME" "$*"
@@ -74,6 +75,7 @@ menu_prompt() {
   local selected=0
   local key=""
   local seq=""
+  local key_type=""
 
   if [[ "$INTERACTIVE" -ne 1 ]]; then
     printf '0'
@@ -103,26 +105,39 @@ menu_prompt() {
     IFS= read -r -s -n 1 -u "$PROMPT_FD" key || true
 
     if [[ "$key" == $'\x1b' ]]; then
-      IFS= read -r -s -n 1 -t 0.1 -u "$PROMPT_FD" seq || true
+      IFS= read -r -s -n 1 -t "$READ_KEY_TIMEOUT" -u "$PROMPT_FD" seq || true
       key+="$seq"
       seq=""
-      IFS= read -r -s -n 1 -t 0.1 -u "$PROMPT_FD" seq || true
+      IFS= read -r -s -n 1 -t "$READ_KEY_TIMEOUT" -u "$PROMPT_FD" seq || true
       key+="$seq"
     fi
     stty "$saved_tty" </dev/tty 2>/dev/null || true
 
+    key_type="$key"
     case "$key" in
-      $'\x1b[A')
+      $'\x1b[A'|$'\x1bOA'|k|K)
+        key_type='up'
+        ;;
+      $'\x1b[B'|$'\x1bOB'|j|J)
+        key_type='down'
+        ;;
+      '')
+        key_type='enter'
+        ;;
+    esac
+
+    case "$key_type" in
+      up)
         if [[ $selected -gt 0 ]]; then
           selected=$((selected - 1))
         fi
         ;;
-      $'\x1b[B')
+      down)
         if [[ $selected -lt $((${#options[@]} - 1)) ]]; then
           selected=$((selected + 1))
         fi
         ;;
-      '')
+      enter)
         tty_printf '\033[2J\033[H'
         printf '%s' "$selected"
         return
