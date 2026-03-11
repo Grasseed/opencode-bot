@@ -8,6 +8,7 @@ BOT_TOKEN_VALUE="${BOT_TOKEN:-}"
 MODEL_VALUE="${OPENCODE_MODEL:-}"
 VARIANT_VALUE="${OPENCODE_VARIANT:-medium}"
 START_NOW_VALUE="${OPENFOX_START_NOW:-yes}"
+LMSTUDIO_BASE_URL="${LMSTUDIO_BASE_URL:-http://127.0.0.1:1234/v1}"
 SKIP_OPENCODE_READY_CHECK="${OPENFOX_SKIP_OPENCODE_READY_CHECK:-0}"
 SKIP_VALIDATION="${OPENFOX_SKIP_VALIDATION:-0}"
 SKIP_REPO_UPDATE="${OPENFOX_SKIP_REPO_UPDATE:-0}"
@@ -489,20 +490,207 @@ launch_opencode_provider_setup() {
   return 0
 }
 
+run_opencode_in_target_dir() {
+  if [[ -d "$TARGET_DIR" ]]; then
+    (
+      cd "$TARGET_DIR"
+      opencode "$@"
+    )
+    return
+  fi
+
+  opencode "$@"
+}
+
+extract_lmstudio_model_ids_from_json() {
+  local models_json="${1:-}"
+  [[ -n "$models_json" ]] || return 0
+
+  LMSTUDIO_MODELS_JSON="$models_json" node - <<'EOF'
+const payload = process.env.LMSTUDIO_MODELS_JSON || ''
+if (!payload) process.exit(0)
+
+let parsed
+try {
+  parsed = JSON.parse(payload)
+} catch {
+  process.exit(0)
+}
+
+const models = Array.isArray(parsed?.data) ? parsed.data : []
+for (const entry of models) {
+  const id = typeof entry?.id === 'string' ? entry.id.trim() : ''
+  if (!id) continue
+  if (/(^|[-/])(embedding|embed)([-/]|$)/i.test(id)) continue
+  process.stdout.write(`${id}\n`)
+}
+EOF
+}
+
+fetch_lmstudio_model_ids() {
+  local base_url="${LMSTUDIO_BASE_URL%/}"
+  local models_json=""
+
+  if ! models_json="$(curl -fsS --max-time 3 "$base_url/models" 2>/dev/null)"; then
+    printf ''
+    return
+  fi
+
+  extract_lmstudio_model_ids_from_json "$models_json"
+}
+
+fetch_lmstudio_models_for_opencode() {
+  local model_id=""
+  while IFS= read -r model_id; do
+    [[ -n "$model_id" ]] || continue
+    printf 'lmstudio/%s\n' "$model_id"
+  done < <(fetch_lmstudio_model_ids)
+}
+
+merge_model_lists() {
+  awk 'NF && !seen[$0]++'
+}
+
+sync_lmstudio_provider_config() {
+  local model_ids=""
+  model_ids="$(fetch_lmstudio_model_ids)"
+  [[ -n "$model_ids" ]] || return 0
+
+  local config_path="$TARGET_DIR/opencode.json"
+  mkdir -p "$TARGET_DIR"
+
+  LMSTUDIO_BASE_URL="$LMSTUDIO_BASE_URL" \
+  OPENCODE_CONFIG_PATH="$config_path" \
+  LMSTUDIO_MODEL_IDS="$model_ids" \
+  node - <<'EOF'
+const fs = require('fs')
+const path = process.env.OPENCODE_CONFIG_PATH
+const baseURL = process.env.LMSTUDIO_BASE_URL
+const ids = (process.env.LMSTUDIO_MODEL_IDS || '')
+  .split(/\r?\n/)
+  .map((value) => value.trim())
+  .filter(Boolean)
+
+if (!path || !baseURL || ids.length === 0) process.exit(0)
+
+let config = {}
+if (fs.existsSync(path)) {
+  try {
+    config = JSON.parse(fs.readFileSync(path, 'utf8'))
+  } catch (error) {
+    console.error(`Failed to parse ${path}: ${error.message}`)
+    process.exit(1)
+  }
+}
+
+if (!config || typeof config !== 'object' || Array.isArray(config)) config = {}
+if (typeof config.$schema !== 'string' || !config.$schema.trim()) {
+  config.$schema = 'https://opencode.ai/config.json'
+}
+if (!config.provider || typeof config.provider !== 'object' || Array.isArray(config.provider)) {
+  config.provider = {}
+}
+
+const existingProvider =
+  config.provider.lmstudio && typeof config.provider.lmstudio === 'object' && !Array.isArray(config.provider.lmstudio)
+    ? config.provider.lmstudio
+    : {}
+const existingOptions =
+  existingProvider.options && typeof existingProvider.options === 'object' && !Array.isArray(existingProvider.options)
+    ? existingProvider.options
+    : {}
+const existingModels =
+  existingProvider.models && typeof existingProvider.models === 'object' && !Array.isArray(existingProvider.models)
+    ? existingProvider.models
+    : {}
+
+const provider = {
+  ...existingProvider,
+  options: {
+    ...existingOptions,
+    baseURL
+  },
+  models: {
+    ...existingModels
+  }
+}
+
+const releaseDate = new Date().toISOString().slice(0, 10)
+for (const id of ids) {
+  const existingModel =
+    provider.models[id] && typeof provider.models[id] === 'object' && !Array.isArray(provider.models[id])
+      ? provider.models[id]
+      : {}
+  provider.models[id] = {
+    name: id,
+    release_date: releaseDate,
+    attachment: false,
+    reasoning: true,
+    temperature: true,
+    tool_call: true,
+    limit: {
+      context: 32768,
+      output: 8192
+    },
+    ...existingModel
+  }
+}
+
+config.provider.lmstudio = provider
+fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`)
+EOF
+}
+
+sync_local_provider_configs() {
+  sync_lmstudio_provider_config
+}
+
+normalize_model_value_with_available_models() {
+  local current_model="${1:-}"
+  local models_text="${2:-}"
+  local line=""
+  local matches=()
+
+  [[ -n "$current_model" ]] || return 0
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    if [[ "$line" == "$current_model" ]]; then
+      printf '%s' "$current_model"
+      return 0
+    fi
+    if [[ "${line#*/}" == "$current_model" ]]; then
+      matches+=("$line")
+    fi
+  done <<< "$models_text"
+
+  if [[ ${#matches[@]} -eq 1 ]]; then
+    printf '%s' "${matches[0]}"
+    return 0
+  fi
+
+  printf '%s' "$current_model"
+}
+
 refresh_available_models() {
   local models_output=""
   local models_error=""
+  local opencode_models=""
+  local lmstudio_models=""
   models_output="$(mktemp)"
   models_error="$(mktemp)"
   trap 'rm -f "$models_output" "$models_error"' RETURN
 
-  if opencode models --refresh >"$models_output" 2>"$models_error"; then
-    cat "$models_output"
-    return
+  sync_local_provider_configs
+  if run_opencode_in_target_dir models --refresh >"$models_output" 2>"$models_error"; then
+    opencode_models="$(cat "$models_output")"
+  elif run_opencode_in_target_dir models >"$models_output" 2>"$models_error"; then
+    opencode_models="$(cat "$models_output")"
   fi
 
-  if opencode models >"$models_output" 2>"$models_error"; then
-    cat "$models_output"
+  lmstudio_models="$(fetch_lmstudio_models_for_opencode)"
+  if [[ -n "$opencode_models$lmstudio_models" ]]; then
+    printf '%s\n%s\n' "$opencode_models" "$lmstudio_models" | merge_model_lists
     return
   fi
 
@@ -1182,7 +1370,8 @@ EOF
 
 extract_default_model() {
   local config_json=""
-  config_json="$(opencode debug config 2>/dev/null || true)"
+  sync_local_provider_configs
+  config_json="$(run_opencode_in_target_dir debug config 2>/dev/null || true)"
   if [[ -z "$config_json" ]]; then
     printf ''
     return
@@ -1205,11 +1394,12 @@ ensure_opencode_ready() {
   models_error="$(mktemp)"
   trap 'rm -f "$models_output" "$models_error"' RETURN
 
+  sync_local_provider_configs
   local attempt
   for attempt in 1 2 3; do
-    if opencode models >"$models_output" 2>"$models_error"; then
+    if run_opencode_in_target_dir models >"$models_output" 2>"$models_error"; then
       OPENCODE_READY=1
-      cat "$models_output"
+      printf '%s\n%s\n' "$(cat "$models_output")" "$(fetch_lmstudio_models_for_opencode)" | merge_model_lists
       return
     fi
 
@@ -1352,6 +1542,7 @@ main() {
   models="$(ensure_opencode_ready)"
   local default_model=""
   default_model="$(extract_default_model)"
+  MODEL_VALUE="$(normalize_model_value_with_available_models "$MODEL_VALUE" "$models")"
   if [[ -z "$MODEL_VALUE" ]]; then
     MODEL_VALUE="$default_model"
   fi
@@ -1359,6 +1550,7 @@ main() {
   run_configuration_wizard "$default_model" "$models"
   [[ -n "$VARIANT_VALUE" ]] || VARIANT_VALUE='medium'
 
+  sync_local_provider_configs
   write_env_file
   validate_openfox
 
