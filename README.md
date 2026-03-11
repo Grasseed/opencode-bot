@@ -6,6 +6,20 @@
 
 OpenFox is a local Telegram bot that forwards each chat to `opencode`, keeps one opencode session per Telegram chat, and returns the model response back to Telegram.
 
+### Quick install
+
+One command with guided setup:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
+```
+
+The installer will:
+
+- install `opencode` first (via Homebrew) plus required tools
+- verify `opencode` can list models before finishing OpenFox setup
+- clone or update OpenFox, create `.env`, run smoke checks, and optionally start the bot
+
 ### What is implemented
 
 - Long polling runner for local use: `telegram-bot.mjs`
@@ -101,6 +115,20 @@ node test-mcp.mjs "Reply with exactly: OK"
 
 OpenFox 是一個本地 Telegram 機器人，會把每個聊天訊息轉送到 `opencode`，為每個 Telegram 聊天維持獨立的 opencode session，並將模型回覆傳回 Telegram。
 
+### 快速安裝
+
+使用一條指令完成安裝與引導設定：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
+```
+
+安裝器會：
+
+- 優先安裝 `opencode`（透過 Homebrew）與必要工具
+- 在完成 OpenFox 設定前，先確認 `opencode` 可以列出可用模型
+- 自動 clone 或更新 OpenFox、建立 `.env`、執行冒煙檢查，並可選擇直接啟動 bot
+
 ### 已實作內容
 
 - 本地 long polling 啟動器：`telegram-bot.mjs`
@@ -195,6 +223,20 @@ node test-mcp.mjs "Reply with exactly: OK"
 ## 简体中文
 
 OpenFox 是一个本地 Telegram 机器人，会把每个聊天消息转发到 `opencode`，为每个 Telegram 聊天维护独立的 opencode session，并将模型回复返回到 Telegram。
+
+### 快速安装
+
+使用一条命令完成安装和引导设置：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
+```
+
+安装器会：
+
+- 优先安装 `opencode`（通过 Homebrew）和必要工具
+- 在完成 OpenFox 配置前，先确认 `opencode` 可以列出可用模型
+- 自动 clone 或更新 OpenFox、创建 `.env`、执行冒烟检查，并可选择直接启动 bot
 
 ### 已实现内容
 
