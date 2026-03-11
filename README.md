@@ -14,6 +14,8 @@ One command with guided setup:
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+You can force installer language with `OPENFOX_LANG=en`, `OPENFOX_LANG=zh-TW`, or `OPENFOX_LANG=zh-CN`.
+
 The installer keeps interactive prompts even with `curl | bash` by reading from your terminal (`/dev/tty`).
 
 The guided setup lets you:
@@ -157,6 +159,8 @@ OpenFox 是一個本地 Telegram 機器人，會把每個聊天訊息轉送到 `
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+你也可以用 `OPENFOX_LANG=en`、`OPENFOX_LANG=zh-TW` 或 `OPENFOX_LANG=zh-CN` 強制指定安裝語言。
+
 即使使用 `curl | bash`，安裝器也會透過終端（`/dev/tty`）保留互動式引導。
 
 這個引導流程支援：
@@ -299,6 +303,8 @@ OpenFox 是一个本地 Telegram 机器人，会把每个聊天消息转发到 `
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
+
+你也可以用 `OPENFOX_LANG=en`、`OPENFOX_LANG=zh-TW` 或 `OPENFOX_LANG=zh-CN` 强制指定安装语言。
 
 即使使用 `curl | bash`，安装器也会通过终端（`/dev/tty`）保持交互式引导。
 

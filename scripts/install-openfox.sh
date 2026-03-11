@@ -19,6 +19,213 @@ INTERACTIVE=0
 PROMPT_FD=0
 OPENCODE_READY=0
 READ_KEY_TIMEOUT=1
+INSTALL_LANG=""
+
+normalize_install_lang() {
+  local value="${1:-}"
+  value="${value%%.*}"
+  value="$(printf '%s' "$value" | command tr '[:upper:]' '[:lower:]')"
+  value="${value//_/-}"
+
+  case "$value" in
+    zh-tw|zh-hk|zh-mo|zh-hant)
+      printf 'zh-TW'
+      ;;
+    zh|zh-cn|zh-sg|zh-hans)
+      printf 'zh-CN'
+      ;;
+    en|en-us|en-gb)
+      printf 'en'
+      ;;
+    *)
+      printf 'en'
+      ;;
+  esac
+}
+
+init_install_lang() {
+  INSTALL_LANG="$(normalize_install_lang "${OPENFOX_LANG:-${LANG:-en}}")"
+}
+
+i18n_text() {
+  local key="$1"
+  case "$INSTALL_LANG" in
+    zh-TW)
+      case "$key" in
+        menu_header) printf 'OpenFox 安裝';;
+        menu_hint) printf '\n使用 ↑/↓ 移動，按 Enter 確認。\n';;
+        lang_title) printf '選擇安裝語言';;
+        lang_opt_en) printf 'English';;
+        lang_opt_zh_tw) printf '繁體中文';;
+        lang_opt_zh_cn) printf '简体中文';;
+        title_bot_token) printf 'Telegram 機器人 Token';;
+        opt_enter_bot_token_now) printf '立即輸入 BOT_TOKEN';;
+        opt_skip_for_now) printf '先略過';;
+        opt_keep_current_bot_token) printf '保留目前 BOT_TOKEN';;
+        prompt_enter_bot_token) printf '請輸入 Telegram BOT_TOKEN';;
+        title_variant) printf '選擇思考強度';;
+        opt_low) printf '低';;
+        opt_medium) printf '中';;
+        opt_high) printf '高';;
+        opt_custom) printf '自訂';;
+        prompt_custom_variant) printf '請輸入自訂 variant';;
+        title_model) printf '選擇 OpenFox 要使用的模型';;
+        opt_use_detected_default) printf '使用偵測到的預設值 (%%s)';;
+        opt_keep_current_model) printf '保留目前模型 (%%s)';;
+        opt_enter_model_manually) printf '手動輸入模型';;
+        prompt_enter_model_name) printf '請輸入模型名稱';;
+        title_opencode_not_ready) printf 'opencode 尚未就緒，要怎麼做？';;
+        opt_retry_opencode_check) printf '重試 opencode 檢查';;
+        opt_open_opencode_auth_login) printf '開啟 opencode auth login';;
+        opt_enter_model_and_continue) printf '手動輸入模型並繼續';;
+        opt_skip_model_setup) printf '先略過模型設定';;
+        opt_abort_installation) printf '中止安裝';;
+        err_installation_cancelled) printf '使用者已取消安裝。';;
+        title_start_after_setup) printf '安裝完成後要啟動 OpenFox 嗎？';;
+        opt_start_openfox_now) printf '立即啟動 OpenFox';;
+        opt_finish_without_starting) printf '先完成但不啟動';;
+        err_non_interactive_bot_token_required) printf '非互動模式必須提供 Telegram BOT_TOKEN。';;
+        err_model_required) printf '必須提供模型。';;
+        err_variant_required) printf '必須提供 variant。';;
+        setup_intro) printf 'OpenFox 引導式安裝\n\n你可以先略過 Telegram 或模型設定，稍後再完成。\n\n';;
+        prompt_press_enter_continue) printf '按 Enter 繼續。 ';;
+        suffix_keep_current_value) printf '按 Enter 保留目前值';;
+        err_field_required_non_interactive) printf '非互動模式必須提供：%%s';;
+        warn_bot_token_skipped_no_autostart) printf '因為略過 BOT_TOKEN，OpenFox 不會自動啟動。';;
+        prompt_press_enter_retry_opencode) printf '按 Enter 重新嘗試 opencode，或按 Ctrl+C 停止。 ';;
+        confirm_start_openfox_now) printf '現在在背景啟動 OpenFox？';;
+        log_checking_models) printf '設定 OpenFox 前先檢查 opencode 模型...';;
+        log_install_complete) printf 'OpenFox 安裝完成。';;
+        log_project_directory) printf '專案目錄：%%s';;
+        log_change_settings) printf '之後要修改設定，請編輯：%%s/.env';;
+        warn_opencode_needs_setup) printf '完成安裝前，OpenFox 需要可正常運作的 opencode。';;
+        warn_hosted_provider_login) printf '若你使用託管服務，安裝器會先開啟 opencode auth login。';;
+        warn_local_provider_retry) printf '若你使用 LM Studio 或其他本地 provider，請先啟動後按 Enter 重試。';;
+        warn_models_failed) printf 'opencode models 仍然失敗。';;
+        err_finish_provider_setup_first) printf '請先完成 opencode provider 設定，再重新執行安裝器。';;
+        *) printf '%s' "$key";;
+      esac
+      ;;
+    zh-CN)
+      case "$key" in
+        menu_header) printf 'OpenFox 安装';;
+        menu_hint) printf '\n使用 ↑/↓ 移动，按 Enter 确认。\n';;
+        lang_title) printf '选择安装语言';;
+        lang_opt_en) printf 'English';;
+        lang_opt_zh_tw) printf '繁體中文';;
+        lang_opt_zh_cn) printf '简体中文';;
+        title_bot_token) printf 'Telegram 机器人 Token';;
+        opt_enter_bot_token_now) printf '立即输入 BOT_TOKEN';;
+        opt_skip_for_now) printf '先跳过';;
+        opt_keep_current_bot_token) printf '保留当前 BOT_TOKEN';;
+        prompt_enter_bot_token) printf '请输入 Telegram BOT_TOKEN';;
+        title_variant) printf '选择思考强度';;
+        opt_low) printf '低';;
+        opt_medium) printf '中';;
+        opt_high) printf '高';;
+        opt_custom) printf '自定义';;
+        prompt_custom_variant) printf '请输入自定义 variant';;
+        title_model) printf '选择 OpenFox 要使用的模型';;
+        opt_use_detected_default) printf '使用检测到的默认值 (%%s)';;
+        opt_keep_current_model) printf '保留当前模型 (%%s)';;
+        opt_enter_model_manually) printf '手动输入模型';;
+        prompt_enter_model_name) printf '请输入模型名称';;
+        title_opencode_not_ready) printf 'opencode 尚未就绪，你想怎么做？';;
+        opt_retry_opencode_check) printf '重试 opencode 检查';;
+        opt_open_opencode_auth_login) printf '打开 opencode auth login';;
+        opt_enter_model_and_continue) printf '手动输入模型并继续';;
+        opt_skip_model_setup) printf '先跳过模型配置';;
+        opt_abort_installation) printf '中止安装';;
+        err_installation_cancelled) printf '用户已取消安装。';;
+        title_start_after_setup) printf '安装完成后要启动 OpenFox 吗？';;
+        opt_start_openfox_now) printf '立即启动 OpenFox';;
+        opt_finish_without_starting) printf '先完成但不启动';;
+        err_non_interactive_bot_token_required) printf '非交互模式必须提供 Telegram BOT_TOKEN。';;
+        err_model_required) printf '必须提供模型。';;
+        err_variant_required) printf '必须提供 variant。';;
+        setup_intro) printf 'OpenFox 引导式安装\n\n你可以先跳过 Telegram 或模型配置，稍后再完成。\n\n';;
+        prompt_press_enter_continue) printf '按 Enter 继续。 ';;
+        suffix_keep_current_value) printf '按 Enter 保留当前值';;
+        err_field_required_non_interactive) printf '非交互模式必须提供：%%s';;
+        warn_bot_token_skipped_no_autostart) printf '因为跳过 BOT_TOKEN，OpenFox 不会自动启动。';;
+        prompt_press_enter_retry_opencode) printf '按 Enter 重试 opencode，或按 Ctrl+C 停止。 ';;
+        confirm_start_openfox_now) printf '现在要在后台启动 OpenFox 吗？';;
+        log_checking_models) printf '配置 OpenFox 前先检查 opencode 模型...';;
+        log_install_complete) printf 'OpenFox 安装完成。';;
+        log_project_directory) printf '项目目录：%%s';;
+        log_change_settings) printf '之后修改配置请编辑：%%s/.env';;
+        warn_opencode_needs_setup) printf '完成安装前，OpenFox 需要可正常工作的 opencode。';;
+        warn_hosted_provider_login) printf '如果你使用托管服务，安装器会先打开 opencode auth login。';;
+        warn_local_provider_retry) printf '如果你使用 LM Studio 或其他本地 provider，请先启动后按 Enter 重试。';;
+        warn_models_failed) printf 'opencode models 仍然失败。';;
+        err_finish_provider_setup_first) printf '请先完成 opencode provider 配置，再重新运行安装器。';;
+        *) printf '%s' "$key";;
+      esac
+      ;;
+    *)
+      case "$key" in
+        menu_header) printf 'OpenFox Setup';;
+        menu_hint) printf '\nUse ↑/↓ to move, Enter to confirm.\n';;
+        lang_title) printf 'Choose installer language';;
+        lang_opt_en) printf 'English';;
+        lang_opt_zh_tw) printf '繁體中文';;
+        lang_opt_zh_cn) printf '简体中文';;
+        title_bot_token) printf 'Telegram bot token';;
+        opt_enter_bot_token_now) printf 'Enter BOT_TOKEN now';;
+        opt_skip_for_now) printf 'Skip for now';;
+        opt_keep_current_bot_token) printf 'Keep current BOT_TOKEN';;
+        prompt_enter_bot_token) printf 'Enter your Telegram BOT_TOKEN';;
+        title_variant) printf 'Choose the thinking variant';;
+        opt_low) printf 'low';;
+        opt_medium) printf 'medium';;
+        opt_high) printf 'high';;
+        opt_custom) printf 'custom';;
+        prompt_custom_variant) printf 'Enter a custom variant';;
+        title_model) printf 'Choose the model OpenFox should use';;
+        opt_use_detected_default) printf 'Use detected default (%%s)';;
+        opt_keep_current_model) printf 'Keep current model (%%s)';;
+        opt_enter_model_manually) printf 'Enter model manually';;
+        prompt_enter_model_name) printf 'Enter the model name';;
+        title_opencode_not_ready) printf 'opencode is not ready yet. What do you want to do?';;
+        opt_retry_opencode_check) printf 'Retry opencode check';;
+        opt_open_opencode_auth_login) printf 'Open opencode auth login';;
+        opt_enter_model_and_continue) printf 'Enter model manually and continue';;
+        opt_skip_model_setup) printf 'Skip model setup for now';;
+        opt_abort_installation) printf 'Abort installation';;
+        err_installation_cancelled) printf 'Installation cancelled by user.';;
+        title_start_after_setup) printf 'Start OpenFox after setup?';;
+        opt_start_openfox_now) printf 'Start OpenFox now';;
+        opt_finish_without_starting) printf 'Finish without starting';;
+        err_non_interactive_bot_token_required) printf 'Enter your Telegram BOT_TOKEN is required for non-interactive installation.';;
+        err_model_required) printf 'A model is required.';;
+        err_variant_required) printf 'A variant is required.';;
+        setup_intro) printf 'OpenFox guided setup\n\nYou can skip Telegram or model configuration for now and finish setup first.\n\n';;
+        prompt_press_enter_continue) printf 'Press Enter to continue. ';;
+        suffix_keep_current_value) printf 'press Enter to keep current value';;
+        err_field_required_non_interactive) printf '%%s is required for non-interactive installation.';;
+        warn_bot_token_skipped_no_autostart) printf 'BOT_TOKEN was skipped, so OpenFox will not start automatically.';;
+        prompt_press_enter_retry_opencode) printf 'Press Enter to retry opencode, or Ctrl+C to stop. ';;
+        confirm_start_openfox_now) printf 'Start OpenFox now in the background?';;
+        log_checking_models) printf 'Checking opencode models before configuring OpenFox...';;
+        log_install_complete) printf 'OpenFox installation is complete.';;
+        log_project_directory) printf 'Project directory: %%s';;
+        log_change_settings) printf 'To change settings later, edit: %%s/.env';;
+        warn_opencode_needs_setup) printf 'OpenFox needs a working opencode setup before installation can finish.';;
+        warn_hosted_provider_login) printf 'If you use a hosted provider, the installer will open opencode auth login now.';;
+        warn_local_provider_retry) printf 'If you use LM Studio or another local provider, start it now and then press Enter to retry.';;
+        warn_models_failed) printf 'opencode models still failed.';;
+        err_finish_provider_setup_first) printf 'Finish your opencode provider setup first, then rerun this installer.';;
+        *) printf '%s' "$key";;
+      esac
+      ;;
+  esac
+}
+
+i18n_printf() {
+  local key="$1"
+  shift
+  printf "$(i18n_text "$key")" "$@"
+}
 
 log() {
   printf '[%s] %s\n' "$SCRIPT_NAME" "$*"
@@ -62,6 +269,24 @@ close_prompt_io() {
   fi
 }
 
+choose_install_language() {
+  if [[ "$INTERACTIVE" -ne 1 ]]; then
+    return
+  fi
+
+  if [[ -n "${OPENFOX_LANG:-}" ]]; then
+    return
+  fi
+
+  local choice
+  choice="$(menu_prompt "$(i18n_text 'lang_title')" "$(i18n_text 'lang_opt_en')" "$(i18n_text 'lang_opt_zh_tw')" "$(i18n_text 'lang_opt_zh_cn')")"
+  case "$choice" in
+    0) INSTALL_LANG='en' ;;
+    1) INSTALL_LANG='zh-TW' ;;
+    2) INSTALL_LANG='zh-CN' ;;
+  esac
+}
+
 tty_printf() {
   if [[ "$INTERACTIVE" -eq 1 ]]; then
     printf '%b' "$1" >/dev/tty
@@ -87,7 +312,7 @@ menu_prompt() {
 
   while true; do
     tty_printf '\033[2J\033[H'
-    tty_printf "OpenFox Setup\n\n$title\n\n"
+    tty_printf "$(i18n_text 'menu_header')\n\n$title\n\n"
 
     local i
     for ((i = 0; i < ${#options[@]}; i += 1)); do
@@ -98,7 +323,7 @@ menu_prompt() {
       fi
     done
 
-    tty_printf '\nUse ↑/↓ to move, Enter to confirm.\n'
+    tty_printf "$(i18n_text 'menu_hint')"
 
     stty -echo -icanon min 1 time 0 </dev/tty 2>/dev/null || true
     key=""
@@ -175,16 +400,17 @@ load_existing_env_defaults() {
 }
 
 choose_bot_token() {
-  local default_label='Skip for now'
+  local default_label=''
+  default_label="$(i18n_text 'opt_skip_for_now')"
   if [[ -n "$BOT_TOKEN_VALUE" ]]; then
-    default_label='Keep current BOT_TOKEN'
+    default_label="$(i18n_text 'opt_keep_current_bot_token')"
   fi
 
   local choice
-  choice="$(menu_prompt 'Telegram bot token' 'Enter BOT_TOKEN now' "$default_label")"
+  choice="$(menu_prompt "$(i18n_text 'title_bot_token')" "$(i18n_text 'opt_enter_bot_token_now')" "$default_label")"
   case "$choice" in
     0)
-      BOT_TOKEN_VALUE="$(prompt_value 'Enter your Telegram BOT_TOKEN' "$BOT_TOKEN_VALUE" yes)"
+      BOT_TOKEN_VALUE="$(prompt_value "$(i18n_text 'prompt_enter_bot_token')" "$BOT_TOKEN_VALUE" yes)"
       ;;
     *)
       if [[ -z "$BOT_TOKEN_VALUE" ]]; then
@@ -196,14 +422,20 @@ choose_bot_token() {
 
 choose_variant() {
   local current_variant="${VARIANT_VALUE:-medium}"
-  local options=('low' 'medium' 'high' 'custom' 'Skip for now')
+  local options=(
+    "$(i18n_text 'opt_low')"
+    "$(i18n_text 'opt_medium')"
+    "$(i18n_text 'opt_high')"
+    "$(i18n_text 'opt_custom')"
+    "$(i18n_text 'opt_skip_for_now')"
+  )
   local choice
-  choice="$(menu_prompt 'Choose the thinking variant' "${options[@]}")"
+  choice="$(menu_prompt "$(i18n_text 'title_variant')" "${options[@]}")"
   case "$choice" in
     0) VARIANT_VALUE='low' ;;
     1) VARIANT_VALUE='medium' ;;
     2) VARIANT_VALUE='high' ;;
-    3) VARIANT_VALUE="$(prompt_value 'Enter a custom variant' "$current_variant")" ;;
+    3) VARIANT_VALUE="$(prompt_value "$(i18n_text 'prompt_custom_variant')" "$current_variant")" ;;
     4) : ;;
   esac
 }
@@ -213,22 +445,25 @@ choose_model_from_list() {
   shift
   local models=("$@")
   local options=()
+  local option_text=""
 
   if [[ -n "$default_model" ]]; then
-    options+=("Use detected default ($default_model)")
+    option_text="$(i18n_printf 'opt_use_detected_default' "$default_model")"
+    options+=("$option_text")
   fi
   if [[ -n "$MODEL_VALUE" ]]; then
-    options+=("Keep current model ($MODEL_VALUE)")
+    option_text="$(i18n_printf 'opt_keep_current_model' "$MODEL_VALUE")"
+    options+=("$option_text")
   fi
 
   local model
   for model in "${models[@]}"; do
     options+=("$model")
   done
-  options+=('Enter model manually' 'Skip for now')
+  options+=("$(i18n_text 'opt_enter_model_manually')" "$(i18n_text 'opt_skip_for_now')")
 
   local choice
-  choice="$(menu_prompt 'Choose the model OpenFox should use' "${options[@]}")"
+  choice="$(menu_prompt "$(i18n_text 'title_model')" "${options[@]}")"
   local index=0
 
   if [[ -n "$default_model" ]]; then
@@ -255,7 +490,7 @@ choose_model_from_list() {
 
   index=$((end_index + 1))
   if [[ "$choice" -eq $index ]]; then
-    MODEL_VALUE="$(prompt_value 'Enter the model name' "$MODEL_VALUE")"
+    MODEL_VALUE="$(prompt_value "$(i18n_text 'prompt_enter_model_name')" "$MODEL_VALUE")"
     return
   fi
 }
@@ -276,7 +511,13 @@ configure_opencode_model() {
   fi
 
   local choice
-  choice="$(menu_prompt 'opencode is not ready yet. What do you want to do?' 'Retry opencode check' 'Open opencode auth login' 'Enter model manually and continue' 'Skip model setup for now' 'Abort installation')"
+  choice="$(menu_prompt \
+    "$(i18n_text 'title_opencode_not_ready')" \
+    "$(i18n_text 'opt_retry_opencode_check')" \
+    "$(i18n_text 'opt_open_opencode_auth_login')" \
+    "$(i18n_text 'opt_enter_model_and_continue')" \
+    "$(i18n_text 'opt_skip_model_setup')" \
+    "$(i18n_text 'opt_abort_installation')")"
   case "$choice" in
     0)
       return 10
@@ -286,21 +527,21 @@ configure_opencode_model() {
       return 10
       ;;
     2)
-      MODEL_VALUE="$(prompt_value 'Enter the model name' "$MODEL_VALUE")"
+      MODEL_VALUE="$(prompt_value "$(i18n_text 'prompt_enter_model_name')" "$MODEL_VALUE")"
       return 0
       ;;
     3)
       return 0
       ;;
     4)
-      fail 'Installation cancelled by user.'
+      fail "$(i18n_text 'err_installation_cancelled')"
       ;;
   esac
 }
 
 choose_start_behavior() {
   local choice
-  choice="$(menu_prompt 'Start OpenFox after setup?' 'Start OpenFox now' 'Finish without starting')"
+  choice="$(menu_prompt "$(i18n_text 'title_start_after_setup')" "$(i18n_text 'opt_start_openfox_now')" "$(i18n_text 'opt_finish_without_starting')")"
   case "$choice" in
     0) START_NOW_VALUE='yes' ;;
     1) START_NOW_VALUE='no' ;;
@@ -313,18 +554,18 @@ run_configuration_wizard() {
 
   if [[ "$INTERACTIVE" -ne 1 ]]; then
     if [[ -z "$BOT_TOKEN_VALUE" ]]; then
-      fail 'Enter your Telegram BOT_TOKEN is required for non-interactive installation.'
+      fail "$(i18n_text 'err_non_interactive_bot_token_required')"
     fi
-    MODEL_VALUE="$(prompt_value 'Choose the model OpenFox should use' "$MODEL_VALUE")"
-    [[ -n "$MODEL_VALUE" ]] || fail 'A model is required.'
-    VARIANT_VALUE="$(prompt_value 'Choose the thinking variant' "$VARIANT_VALUE")"
-    [[ -n "$VARIANT_VALUE" ]] || fail 'A variant is required.'
+    MODEL_VALUE="$(prompt_value "$(i18n_text 'title_model')" "$MODEL_VALUE")"
+    [[ -n "$MODEL_VALUE" ]] || fail "$(i18n_text 'err_model_required')"
+    VARIANT_VALUE="$(prompt_value "$(i18n_text 'title_variant')" "$VARIANT_VALUE")"
+    [[ -n "$VARIANT_VALUE" ]] || fail "$(i18n_text 'err_variant_required')"
     return
   fi
 
   tty_printf '\033[2J\033[H'
-  tty_printf 'OpenFox guided setup\n\nYou can skip Telegram or model configuration for now and finish setup first.\n\n'
-  read -r -u "$PROMPT_FD" -p 'Press Enter to continue. '
+  tty_printf "$(i18n_text 'setup_intro')"
+  read -r -u "$PROMPT_FD" -p "$(i18n_text 'prompt_press_enter_continue')"
 
   choose_bot_token
 
@@ -339,7 +580,7 @@ run_configuration_wizard() {
 
   if [[ -z "$BOT_TOKEN_VALUE" ]]; then
     START_NOW_VALUE='no'
-    warn 'BOT_TOKEN was skipped, so OpenFox will not start automatically.'
+    warn "$(i18n_text 'warn_bot_token_skipped_no_autostart')"
   fi
 }
 
@@ -376,12 +617,12 @@ prompt_value() {
   fi
 
   if [[ "$INTERACTIVE" -ne 1 ]]; then
-    fail "$prompt is required for non-interactive installation."
+    fail "$(i18n_printf 'err_field_required_non_interactive' "$prompt")"
   fi
 
   if [[ "$secret" == "yes" ]]; then
     if [[ -n "$default_value" ]]; then
-      read -r -u "$PROMPT_FD" -s -p "$prompt [press Enter to keep current value]: " value
+      read -r -u "$PROMPT_FD" -s -p "$prompt [$(i18n_text 'suffix_keep_current_value')]: " value
       printf '\n' >&2
       value="${value:-$default_value}"
     else
@@ -782,22 +1023,22 @@ ensure_opencode_ready() {
       return
     fi
 
-    warn 'OpenFox needs a working opencode setup before installation can finish.'
+    warn "$(i18n_text 'warn_opencode_needs_setup')"
 
     if [[ $attempt -eq 1 ]]; then
-      warn 'If you use a hosted provider, the installer will open opencode auth login now.'
+      warn "$(i18n_text 'warn_hosted_provider_login')"
       if [[ "$INTERACTIVE" -eq 1 ]]; then
         opencode auth login </dev/tty >/dev/tty 2>/dev/tty || true
       fi
     else
-      warn 'If you use LM Studio or another local provider, start it now and then press Enter to retry.'
+      warn "$(i18n_text 'warn_local_provider_retry')"
       if [[ "$INTERACTIVE" -eq 1 ]]; then
-        read -r -u "$PROMPT_FD" -p 'Press Enter to retry opencode, or Ctrl+C to stop. '
+        read -r -u "$PROMPT_FD" -p "$(i18n_text 'prompt_press_enter_retry_opencode')"
       fi
     fi
   done
 
-  warn 'opencode models still failed.'
+  warn "$(i18n_text 'warn_models_failed')"
   if [[ -s "$models_error" ]]; then
     sed 's/^/[opencode] /' "$models_error" >&2
   fi
@@ -808,7 +1049,7 @@ ensure_opencode_ready() {
     return
   fi
 
-  fail 'Finish your opencode provider setup first, then rerun this installer.'
+  fail "$(i18n_text 'err_finish_provider_setup_first')"
 }
 
 write_env_file() {
@@ -889,6 +1130,8 @@ start_openfox() {
 main() {
   init_prompt_io
   trap close_prompt_io EXIT
+  init_install_lang
+  choose_install_language
 
   init_privileges
   detect_package_manager
@@ -900,7 +1143,7 @@ main() {
   persist_shell_path_entries
   load_existing_env_defaults
 
-  log 'Checking opencode models before configuring OpenFox...'
+  log "$(i18n_text 'log_checking_models')"
   local models=""
   models="$(ensure_opencode_ready)"
   local default_model=""
@@ -917,13 +1160,13 @@ main() {
 
   if is_truthy "$START_NOW_VALUE"; then
     start_openfox
-  elif [[ -t 0 ]] && confirm 'Start OpenFox now in the background?' yes; then
+  elif [[ -t 0 ]] && confirm "$(i18n_text 'confirm_start_openfox_now')" yes; then
     start_openfox
   fi
 
-  log 'OpenFox installation is complete.'
-  log "Project directory: $TARGET_DIR"
-  log "To change settings later, edit: $TARGET_DIR/.env"
+  log "$(i18n_text 'log_install_complete')"
+  log "$(i18n_printf 'log_project_directory' "$TARGET_DIR")"
+  log "$(i18n_printf 'log_change_settings' "$TARGET_DIR")"
 }
 
 main "$@"
