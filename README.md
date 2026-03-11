@@ -26,6 +26,20 @@ Supported installer environments:
 - macOS with Homebrew
 - Linux with `apt`, `dnf`, `yum`, `pacman`, `apk`, or `zypper`
 
+### Uninstall
+
+Remove OpenFox only:
+
+```bash
+bash ./scripts/uninstall-openfox.sh
+```
+
+Remove OpenFox and opencode:
+
+```bash
+OPENFOX_UNINSTALL_REMOVE_OPENCODE=yes bash ./scripts/uninstall-openfox.sh
+```
+
 ### What is implemented
 
 - Long polling runner for local use: `telegram-bot.mjs`
@@ -141,6 +155,20 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 - macOS（Homebrew）
 - Linux（`apt`、`dnf`、`yum`、`pacman`、`apk`、`zypper`）
 
+### 解除安裝
+
+只移除 OpenFox：
+
+```bash
+bash ./scripts/uninstall-openfox.sh
+```
+
+同時移除 OpenFox 與 opencode：
+
+```bash
+OPENFOX_UNINSTALL_REMOVE_OPENCODE=yes bash ./scripts/uninstall-openfox.sh
+```
+
 ### 已實作內容
 
 - 本地 long polling 啟動器：`telegram-bot.mjs`
@@ -255,6 +283,20 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 
 - macOS（Homebrew）
 - Linux（`apt`、`dnf`、`yum`、`pacman`、`apk`、`zypper`）
+
+### 卸载
+
+只移除 OpenFox：
+
+```bash
+bash ./scripts/uninstall-openfox.sh
+```
+
+同时移除 OpenFox 和 opencode：
+
+```bash
+OPENFOX_UNINSTALL_REMOVE_OPENCODE=yes bash ./scripts/uninstall-openfox.sh
+```
 
 ### 已实现内容
 

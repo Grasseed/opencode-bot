@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "install:guided": "bash ./scripts/install-openfox.sh",
+    "uninstall:guided": "bash ./scripts/uninstall-openfox.sh",
     "start": "node telegram-bot.mjs",
     "start:webhook": "node telegram-webhook-handler.mjs",
     "check": "node --check telegram-bot.mjs && node --check telegram-webhook-handler.mjs && node --check test-mcp.mjs && node --check test-reply.mjs"
