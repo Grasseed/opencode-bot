@@ -35,6 +35,16 @@ function classifyError(error) {
     return 3
   }
 
+  if (error && typeof error === 'object' && (error.code === 28 || error.code === 7)) {
+    return 3
+  }
+
+  if (error && typeof error === 'object' && typeof error.stderr === 'string') {
+    if (error.stderr.includes('SSL connection timeout')) return 3
+    if (error.stderr.includes('Connection timed out')) return 3
+    if (error.stderr.includes('Failed to connect')) return 3
+  }
+
   if (error && typeof error === 'object' && error.cause && error.cause.code) {
     return 3
   }
