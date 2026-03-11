@@ -139,6 +139,16 @@ uninstall_opencode() {
 
   log 'Removing opencode from this machine...'
 
+  if command -v opencode >/dev/null 2>&1; then
+    local uninstall_args=(uninstall --force)
+    if is_truthy "$DRY_RUN"; then
+      uninstall_args+=(--dry-run)
+    fi
+
+    log 'Running opencode self-uninstall...'
+    run_cmd opencode "${uninstall_args[@]}" || warn 'opencode self-uninstall failed; falling back to package manager cleanup.'
+  fi
+
   if command -v brew >/dev/null 2>&1; then
     if brew list --formula 2>/dev/null | grep -qx 'opencode'; then
       run_cmd brew uninstall opencode || true

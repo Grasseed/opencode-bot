@@ -414,6 +414,46 @@ load_brew_env() {
   fi
 }
 
+append_path_export_line() {
+  local rc_file="$1"
+  local dir="$2"
+  local line="export PATH=\"$dir:\$PATH\""
+
+  if [[ ! -f "$rc_file" ]]; then
+    mkdir -p "$(dirname "$rc_file")"
+    : >"$rc_file"
+  fi
+
+  if grep -Fqx "$line" "$rc_file"; then
+    return
+  fi
+
+  printf '\n# Added by OpenFox installer\n%s\n' "$line" >>"$rc_file"
+}
+
+persist_shell_path_entries() {
+  local shell_name="${SHELL##*/}"
+  local rc_files=()
+
+  case "$shell_name" in
+    zsh)
+      rc_files=("$HOME/.zprofile" "$HOME/.zshrc")
+      ;;
+    bash)
+      rc_files=("$HOME/.bash_profile" "$HOME/.bashrc")
+      ;;
+    *)
+      rc_files=("$HOME/.profile")
+      ;;
+  esac
+
+  local rc_file
+  for rc_file in "${rc_files[@]}"; do
+    append_path_export_line "$rc_file" "$HOME/.opencode/bin"
+    append_path_export_line "$rc_file" "$HOME/.local/bin"
+  done
+}
+
 refresh_user_path() {
   load_brew_env
 
@@ -423,7 +463,7 @@ refresh_user_path() {
   if [[ -n "$npm_prefix" && "$npm_prefix" != "undefined" ]]; then
     dirs+=("$npm_prefix/bin")
   fi
-  dirs+=("$HOME/.local/bin" "$HOME/bin")
+  dirs+=("$HOME/.opencode/bin" "$HOME/.local/bin" "$HOME/bin")
 
   local dir
   for dir in "${dirs[@]}"; do
@@ -857,6 +897,7 @@ main() {
   ensure_repo
   chmod +x "$TARGET_DIR/scripts/install-openfox.sh" "$TARGET_DIR/scripts/uninstall-openfox.sh" "$TARGET_DIR/scripts/openfox.sh" 2>/dev/null || true
   install_openfox_launcher
+  persist_shell_path_entries
   load_existing_env_defaults
 
   log 'Checking opencode models before configuring OpenFox...'
