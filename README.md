@@ -14,6 +14,8 @@ One command with guided setup:
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+The installer keeps interactive prompts even with `curl | bash` by reading from your terminal (`/dev/tty`).
+
 The installer will:
 
 - install `opencode` first plus required tools for the detected platform
@@ -149,6 +151,8 @@ OpenFox 是一個本地 Telegram 機器人，會把每個聊天訊息轉送到 `
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+即使使用 `curl | bash`，安裝器也會透過終端（`/dev/tty`）保留互動式引導。
+
 安裝器會：
 
 - 依照偵測到的平台優先安裝 `opencode` 與必要工具
@@ -283,6 +287,8 @@ OpenFox 是一个本地 Telegram 机器人，会把每个聊天消息转发到 `
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
+
+即使使用 `curl | bash`，安装器也会通过终端（`/dev/tty`）保持交互式引导。
 
 安装器会：
 

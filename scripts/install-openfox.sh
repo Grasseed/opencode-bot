@@ -14,6 +14,8 @@ OS_NAME="$(uname -s)"
 PACKAGE_MANAGER=""
 PACKAGE_UPDATE_DONE=0
 ROOT_PREFIX=()
+INTERACTIVE=0
+PROMPT_FD=0
 
 log() {
   printf '[%s] %s\n' "$SCRIPT_NAME" "$*"
@@ -33,21 +35,45 @@ is_truthy() {
   [[ "$value" =~ ^(1|true|yes|on)$ ]]
 }
 
+init_prompt_io() {
+  if [[ -t 0 ]]; then
+    INTERACTIVE=1
+    PROMPT_FD=0
+    return
+  fi
+
+  if { exec 3<>/dev/tty; } 2>/dev/null; then
+    INTERACTIVE=1
+    PROMPT_FD=3
+    return
+  fi
+
+  INTERACTIVE=0
+  PROMPT_FD=0
+}
+
+close_prompt_io() {
+  if [[ "$PROMPT_FD" -eq 3 ]]; then
+    exec 3<&-
+    exec 3>&-
+  fi
+}
+
 confirm() {
   local prompt="$1"
   local default_answer="$2"
   local reply=""
 
-  if [[ ! -t 0 ]]; then
+  if [[ "$INTERACTIVE" -ne 1 ]]; then
     [[ "$default_answer" == "yes" ]]
     return
   fi
 
   if [[ "$default_answer" == "yes" ]]; then
-    read -r -p "$prompt [Y/n] " reply
+    read -r -u "$PROMPT_FD" -p "$prompt [Y/n] " reply
     reply="${reply:-Y}"
   else
-    read -r -p "$prompt [y/N] " reply
+    read -r -u "$PROMPT_FD" -p "$prompt [y/N] " reply
     reply="${reply:-N}"
   fi
 
@@ -60,30 +86,30 @@ prompt_value() {
   local secret="${3:-no}"
   local value=""
 
-  if [[ -n "$default_value" && ! -t 0 ]]; then
+  if [[ -n "$default_value" && "$INTERACTIVE" -ne 1 ]]; then
     printf '%s' "$default_value"
     return
   fi
 
-  if [[ ! -t 0 ]]; then
+  if [[ "$INTERACTIVE" -ne 1 ]]; then
     fail "$prompt is required for non-interactive installation."
   fi
 
   if [[ "$secret" == "yes" ]]; then
     if [[ -n "$default_value" ]]; then
-      read -r -s -p "$prompt [press Enter to keep current value]: " value
+      read -r -u "$PROMPT_FD" -s -p "$prompt [press Enter to keep current value]: " value
       printf '\n' >&2
       value="${value:-$default_value}"
     else
-      read -r -s -p "$prompt: " value
+      read -r -u "$PROMPT_FD" -s -p "$prompt: " value
       printf '\n' >&2
     fi
   else
     if [[ -n "$default_value" ]]; then
-      read -r -p "$prompt [$default_value]: " value
+      read -r -u "$PROMPT_FD" -p "$prompt [$default_value]: " value
       value="${value:-$default_value}"
     else
-      read -r -p "$prompt: " value
+      read -r -u "$PROMPT_FD" -p "$prompt: " value
     fi
   fi
 
@@ -430,13 +456,13 @@ ensure_opencode_ready() {
 
     if [[ $attempt -eq 1 ]]; then
       warn 'If you use a hosted provider, the installer will open opencode auth login now.'
-      if [[ -t 0 ]]; then
-        opencode auth login || true
+      if [[ "$INTERACTIVE" -eq 1 ]]; then
+        opencode auth login </dev/tty >/dev/tty 2>/dev/tty || true
       fi
     else
       warn 'If you use LM Studio or another local provider, start it now and then press Enter to retry.'
-      if [[ -t 0 ]]; then
-        read -r -p 'Press Enter to retry opencode, or Ctrl+C to stop. '
+      if [[ "$INTERACTIVE" -eq 1 ]]; then
+        read -r -u "$PROMPT_FD" -p 'Press Enter to retry opencode, or Ctrl+C to stop. '
       fi
     fi
   done
@@ -516,6 +542,9 @@ start_openfox() {
 }
 
 main() {
+  init_prompt_io
+  trap close_prompt_io EXIT
+
   init_privileges
   detect_package_manager
   ensure_core_tools
