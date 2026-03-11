@@ -22,6 +22,7 @@ The guided setup lets you:
 
 - move through options with the arrow keys
 - press Enter to confirm a selection
+- choose provider first, then pick a model
 - skip Telegram or model setup for now and configure later with `openfox configure`
 
 The installer will:
@@ -169,6 +170,7 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 
 - 使用方向鍵上下選擇選項
 - 按 Enter 確認
+- 先選擇 provider，再選擇模型
 - 先跳過 Telegram 或模型設定，之後再用 `openfox configure` 補設定
 
 安裝器會：
@@ -316,6 +318,7 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 
 - 使用方向键上下选择选项
 - 按 Enter 确认
+- 先选择 provider，再选择模型
 - 先跳过 Telegram 或模型配置，之后再用 `openfox configure` 补设定
 
 安装器会：

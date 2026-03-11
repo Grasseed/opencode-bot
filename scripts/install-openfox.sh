@@ -70,9 +70,12 @@ i18n_text() {
         opt_custom) printf '自訂';;
         prompt_custom_variant) printf '請輸入自訂 variant';;
         title_model) printf '選擇 OpenFox 要使用的模型';;
+        title_provider) printf '先選擇模型供應商';;
+        title_model_for_provider) printf '選擇供應商 %%s 的模型';;
         opt_use_detected_default) printf '使用偵測到的預設值 (%%s)';;
         opt_keep_current_model) printf '保留目前模型 (%%s)';;
         opt_enter_model_manually) printf '手動輸入模型';;
+        opt_choose_another_provider) printf '重新選擇供應商';;
         prompt_enter_model_name) printf '請輸入模型名稱';;
         title_opencode_not_ready) printf 'opencode 尚未就緒，要怎麼做？';;
         opt_retry_opencode_check) printf '重試 opencode 檢查';;
@@ -126,9 +129,12 @@ i18n_text() {
         opt_custom) printf '自定义';;
         prompt_custom_variant) printf '请输入自定义 variant';;
         title_model) printf '选择 OpenFox 要使用的模型';;
+        title_provider) printf '先选择模型供应商';;
+        title_model_for_provider) printf '选择供应商 %%s 的模型';;
         opt_use_detected_default) printf '使用检测到的默认值 (%%s)';;
         opt_keep_current_model) printf '保留当前模型 (%%s)';;
         opt_enter_model_manually) printf '手动输入模型';;
+        opt_choose_another_provider) printf '重新选择供应商';;
         prompt_enter_model_name) printf '请输入模型名称';;
         title_opencode_not_ready) printf 'opencode 尚未就绪，你想怎么做？';;
         opt_retry_opencode_check) printf '重试 opencode 检查';;
@@ -182,9 +188,12 @@ i18n_text() {
         opt_custom) printf 'custom';;
         prompt_custom_variant) printf 'Enter a custom variant';;
         title_model) printf 'Choose the model OpenFox should use';;
+        title_provider) printf 'Choose a model provider first';;
+        title_model_for_provider) printf 'Choose a model from provider %%s';;
         opt_use_detected_default) printf 'Use detected default (%%s)';;
         opt_keep_current_model) printf 'Keep current model (%%s)';;
         opt_enter_model_manually) printf 'Enter model manually';;
+        opt_choose_another_provider) printf 'Choose another provider';;
         prompt_enter_model_name) printf 'Enter the model name';;
         title_opencode_not_ready) printf 'opencode is not ready yet. What do you want to do?';;
         opt_retry_opencode_check) printf 'Retry opencode check';;
@@ -440,59 +449,168 @@ choose_variant() {
   esac
 }
 
-choose_model_from_list() {
-  local default_model="$1"
+array_contains() {
+  local needle="$1"
   shift
+  local value=""
+  for value in "$@"; do
+    if [[ "$value" == "$needle" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+choose_model_from_provider() {
+  local provider="$1"
+  local default_model="$2"
+  shift 2
   local models=("$@")
+  local filtered_models=()
   local options=()
   local option_text=""
+  local model=""
 
-  if [[ -n "$default_model" ]]; then
+  for model in "${models[@]}"; do
+    if [[ "$model" == "$provider/"* ]]; then
+      filtered_models+=("$model")
+    fi
+  done
+
+  if [[ -n "$default_model" && "$default_model" == "$provider/"* ]]; then
     option_text="$(i18n_printf 'opt_use_detected_default' "$default_model")"
     options+=("$option_text")
   fi
-  if [[ -n "$MODEL_VALUE" ]]; then
+  if [[ -n "$MODEL_VALUE" && "$MODEL_VALUE" == "$provider/"* ]]; then
     option_text="$(i18n_printf 'opt_keep_current_model' "$MODEL_VALUE")"
     options+=("$option_text")
   fi
 
-  local model
-  for model in "${models[@]}"; do
+  for model in "${filtered_models[@]}"; do
     options+=("$model")
   done
-  options+=("$(i18n_text 'opt_enter_model_manually')" "$(i18n_text 'opt_skip_for_now')")
 
-  local choice
-  choice="$(menu_prompt "$(i18n_text 'title_model')" "${options[@]}")"
+  options+=(
+    "$(i18n_text 'opt_enter_model_manually')"
+    "$(i18n_text 'opt_choose_another_provider')"
+    "$(i18n_text 'opt_skip_for_now')"
+  )
+
+  local title=""
+  title="$(i18n_printf 'title_model_for_provider' "$provider")"
+  local choice=""
+  choice="$(menu_prompt "$title" "${options[@]}")"
   local index=0
 
-  if [[ -n "$default_model" ]]; then
+  if [[ -n "$default_model" && "$default_model" == "$provider/"* ]]; then
     if [[ "$choice" -eq $index ]]; then
       MODEL_VALUE="$default_model"
-      return
+      return 0
     fi
     index=$((index + 1))
   fi
 
-  if [[ -n "$MODEL_VALUE" ]]; then
+  if [[ -n "$MODEL_VALUE" && "$MODEL_VALUE" == "$provider/"* ]]; then
     if [[ "$choice" -eq $index ]]; then
-      return
+      return 0
     fi
     index=$((index + 1))
   fi
 
   local start_index=$index
-  local end_index=$((start_index + ${#models[@]} - 1))
-  if [[ ${#models[@]} -gt 0 && "$choice" -ge $start_index && "$choice" -le $end_index ]]; then
-    MODEL_VALUE="${models[$((choice - start_index))]}"
-    return
+  local end_index=$((start_index + ${#filtered_models[@]} - 1))
+  if [[ ${#filtered_models[@]} -gt 0 && "$choice" -ge $start_index && "$choice" -le $end_index ]]; then
+    MODEL_VALUE="${filtered_models[$((choice - start_index))]}"
+    return 0
   fi
 
   index=$((end_index + 1))
   if [[ "$choice" -eq $index ]]; then
     MODEL_VALUE="$(prompt_value "$(i18n_text 'prompt_enter_model_name')" "$MODEL_VALUE")"
-    return
+    return 0
   fi
+
+  index=$((index + 1))
+  if [[ "$choice" -eq $index ]]; then
+    return 10
+  fi
+
+  return 0
+}
+
+choose_model_from_list() {
+  local default_model="$1"
+  shift
+  local models=("$@")
+  local providers=()
+  local model=""
+  local provider=""
+
+  for model in "${models[@]}"; do
+    provider="${model%%/*}"
+    [[ -n "$provider" ]] || continue
+    if [[ ${#providers[@]} -eq 0 ]] || ! array_contains "$provider" "${providers[@]}"; then
+      providers+=("$provider")
+    fi
+  done
+
+  while true; do
+    local options=()
+    local option_text=""
+    local choice=""
+    local index=0
+    local provider_start=0
+    local provider_end=-1
+
+    if [[ -n "$default_model" ]]; then
+      option_text="$(i18n_printf 'opt_use_detected_default' "$default_model")"
+      options+=("$option_text")
+    fi
+    if [[ -n "$MODEL_VALUE" ]]; then
+      option_text="$(i18n_printf 'opt_keep_current_model' "$MODEL_VALUE")"
+      options+=("$option_text")
+    fi
+
+    for provider in "${providers[@]}"; do
+      options+=("$provider")
+    done
+
+    options+=("$(i18n_text 'opt_enter_model_manually')" "$(i18n_text 'opt_skip_for_now')")
+    choice="$(menu_prompt "$(i18n_text 'title_provider')" "${options[@]}")"
+
+    if [[ -n "$default_model" ]]; then
+      if [[ "$choice" -eq $index ]]; then
+        MODEL_VALUE="$default_model"
+        return
+      fi
+      index=$((index + 1))
+    fi
+
+    if [[ -n "$MODEL_VALUE" ]]; then
+      if [[ "$choice" -eq $index ]]; then
+        return
+      fi
+      index=$((index + 1))
+    fi
+
+    provider_start=$index
+    provider_end=$((provider_start + ${#providers[@]} - 1))
+    if [[ ${#providers[@]} -gt 0 && "$choice" -ge $provider_start && "$choice" -le $provider_end ]]; then
+      provider="${providers[$((choice - provider_start))]}"
+      if choose_model_from_provider "$provider" "$default_model" "${models[@]}"; then
+        return
+      fi
+      continue
+    fi
+
+    index=$((provider_end + 1))
+    if [[ "$choice" -eq $index ]]; then
+      MODEL_VALUE="$(prompt_value "$(i18n_text 'prompt_enter_model_name')" "$MODEL_VALUE")"
+      return
+    fi
+
+    return
+  done
 }
 
 configure_opencode_model() {
