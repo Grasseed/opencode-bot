@@ -44,6 +44,8 @@ Simple command:
 openfox uninstall
 ```
 
+You can force uninstall language with `OPENFOX_UNINSTALL_LANG=en`, `OPENFOX_UNINSTALL_LANG=zh-TW`, or `OPENFOX_UNINSTALL_LANG=zh-CN`.
+
 Remove OpenFox only (direct script):
 
 ```bash
@@ -189,6 +191,8 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 openfox uninstall
 ```
 
+你也可以用 `OPENFOX_UNINSTALL_LANG=en`、`OPENFOX_UNINSTALL_LANG=zh-TW` 或 `OPENFOX_UNINSTALL_LANG=zh-CN` 強制指定解除安裝語言。
+
 只移除 OpenFox（直接執行腳本）：
 
 ```bash
@@ -333,6 +337,8 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 ```bash
 openfox uninstall
 ```
+
+你也可以用 `OPENFOX_UNINSTALL_LANG=en`、`OPENFOX_UNINSTALL_LANG=zh-TW` 或 `OPENFOX_UNINSTALL_LANG=zh-CN` 强制指定卸载语言。
 
 只移除 OpenFox（直接执行脚本）：
 
