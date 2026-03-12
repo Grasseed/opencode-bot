@@ -35,6 +35,7 @@ The installer will:
 - reuse existing `brew`, `git`, `node`, `npm`, `curl`, and `opencode` when they are already available
 - verify `opencode` can list models before finishing OpenFox setup
 - clone or update OpenFox, create `.env`, run smoke checks, and optionally start the bot
+- install `zsh` and `bash` completion for `openfox` subcommands
 
 Supported installer environments:
 
@@ -187,6 +188,7 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 - 若系統已經有 `brew`、`git`、`node`、`npm`、`curl`、`opencode`，會直接沿用，不會重複安裝
 - 在完成 OpenFox 設定前，先確認 `opencode` 可以列出可用模型
 - 自動 clone 或更新 OpenFox、建立 `.env`、執行冒煙檢查，並可選擇直接啟動 bot
+- 安裝 `openfox` 子命令的 `zsh` 與 `bash` 補全
 
 目前安裝器支援：
 
@@ -339,6 +341,7 @@ curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/insta
 - 如果系统已经有 `brew`、`git`、`node`、`npm`、`curl`、`opencode`，就会直接复用，不会重复安装
 - 在完成 OpenFox 配置前，先确认 `opencode` 可以列出可用模型
 - 自动 clone 或更新 OpenFox、创建 `.env`、执行冒烟检查，并可选择直接启动 bot
+- 安装 `openfox` 子命令的 `zsh` 与 `bash` 补全
 
 当前安装器支持：
 

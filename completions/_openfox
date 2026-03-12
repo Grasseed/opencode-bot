@@ -1,0 +1,23 @@
+#compdef openfox
+
+_openfox() {
+  local -a commands
+  commands=(
+    'start:Start OpenFox'
+    'stop:Stop the running OpenFox process'
+    'status:Show the current OpenFox status'
+    'configure:Run the guided configuration flow'
+    'uninstall:Run the guided uninstall flow'
+    'help:Show usage information'
+  )
+
+  _arguments '1:command:->command'
+
+  case "$state" in
+    command)
+      _describe -t commands 'openfox command' commands
+      ;;
+  esac
+}
+
+_openfox "$@"

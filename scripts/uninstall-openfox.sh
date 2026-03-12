@@ -265,6 +265,41 @@ remove_openfox_launcher() {
   fi
 }
 
+remove_managed_block() {
+  local rc_file="$1"
+  local begin_marker="$2"
+  local end_marker="$3"
+  local temp_file=""
+
+  [[ -f "$rc_file" ]] || return
+
+  temp_file="$(mktemp)"
+  awk -v begin="$begin_marker" -v end="$end_marker" '
+    index($0, begin) {
+      skip = 1
+      next
+    }
+    index($0, end) {
+      skip = 0
+      next
+    }
+    !skip {
+      print
+    }
+  ' "$rc_file" >"$temp_file"
+
+  run_cmd mv "$temp_file" "$rc_file"
+}
+
+remove_openfox_completions() {
+  run_cmd rm -f "$HOME/.local/share/openfox/zsh-completions/_openfox"
+  run_cmd rm -f "$HOME/.local/share/bash-completion/completions/openfox"
+
+  remove_managed_block "$HOME/.zshrc" '# >>> OpenFox zsh completion >>>' '# <<< OpenFox zsh completion <<<'
+  remove_managed_block "$HOME/.bash_profile" '# >>> OpenFox bash completion >>>' '# <<< OpenFox bash completion <<<'
+  remove_managed_block "$HOME/.bashrc" '# >>> OpenFox bash completion >>>' '# <<< OpenFox bash completion <<<'
+}
+
 resolve_remove_opencode() {
   if is_truthy "$REMOVE_OPENCODE"; then
     return 0
@@ -345,6 +380,7 @@ main() {
   stop_openfox_process
   remove_openfox_files
   remove_openfox_launcher
+  remove_openfox_completions
   uninstall_opencode
 
   log "$(i18n_text 'log_uninstall_completed')"

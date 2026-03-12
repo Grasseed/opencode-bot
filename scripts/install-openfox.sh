@@ -1053,6 +1053,24 @@ append_path_export_line() {
   printf '\n# Added by OpenFox installer\n%s\n' "$line" >>"$rc_file"
 }
 
+append_managed_block() {
+  local rc_file="$1"
+  local begin_marker="$2"
+  local end_marker="$3"
+  local block_content="$4"
+
+  if [[ ! -f "$rc_file" ]]; then
+    mkdir -p "$(dirname "$rc_file")"
+    : >"$rc_file"
+  fi
+
+  if grep -Fq "$begin_marker" "$rc_file"; then
+    return
+  fi
+
+  printf '\n%s\n%s\n%s\n' "$begin_marker" "$block_content" "$end_marker" >>"$rc_file"
+}
+
 persist_shell_path_entries() {
   local shell_name="${SHELL##*/}"
   local rc_files=()
@@ -1074,6 +1092,21 @@ persist_shell_path_entries() {
     append_path_export_line "$rc_file" "$HOME/.opencode/bin"
     append_path_export_line "$rc_file" "$HOME/.local/bin"
   done
+}
+
+persist_shell_completion_entries() {
+  local zsh_block='fpath=("$HOME/.local/share/openfox/zsh-completions" $fpath)
+if [[ "$(whence -w compdef 2>/dev/null)" == "compdef: none" ]]; then
+  autoload -Uz compinit
+  compinit
+fi'
+  local bash_block='if [ -f "$HOME/.local/share/bash-completion/completions/openfox" ]; then
+  . "$HOME/.local/share/bash-completion/completions/openfox"
+fi'
+
+  append_managed_block "$HOME/.zshrc" '# >>> OpenFox zsh completion >>>' '# <<< OpenFox zsh completion <<<' "$zsh_block"
+  append_managed_block "$HOME/.bash_profile" '# >>> OpenFox bash completion >>>' '# <<< OpenFox bash completion <<<' "$bash_block"
+  append_managed_block "$HOME/.bashrc" '# >>> OpenFox bash completion >>>' '# <<< OpenFox bash completion <<<' "$bash_block"
 }
 
 refresh_user_path() {
@@ -1387,6 +1420,16 @@ EOF
   fi
 }
 
+install_openfox_completions() {
+  local zsh_completion_dir="$HOME/.local/share/openfox/zsh-completions"
+  local bash_completion_dir="$HOME/.local/share/bash-completion/completions"
+
+  mkdir -p "$zsh_completion_dir" "$bash_completion_dir"
+  cp "$TARGET_DIR/completions/_openfox" "$zsh_completion_dir/_openfox"
+  cp "$TARGET_DIR/completions/openfox.bash" "$bash_completion_dir/openfox"
+  chmod 644 "$zsh_completion_dir/_openfox" "$bash_completion_dir/openfox"
+}
+
 extract_default_model() {
   local config_json=""
   sync_local_provider_configs
@@ -1553,7 +1596,9 @@ main() {
   ensure_repo
   chmod +x "$TARGET_DIR/scripts/install-openfox.sh" "$TARGET_DIR/scripts/uninstall-openfox.sh" "$TARGET_DIR/scripts/openfox.sh" 2>/dev/null || true
   install_openfox_launcher
+  install_openfox_completions
   persist_shell_path_entries
+  persist_shell_completion_entries
   load_existing_env_defaults
 
   log "$(i18n_text 'log_checking_models')"
