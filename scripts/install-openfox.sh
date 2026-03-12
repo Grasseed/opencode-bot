@@ -103,6 +103,7 @@ i18n_text() {
         log_install_complete) printf 'OpenFox 安裝完成。';;
         log_project_directory) printf '專案目錄：%%s';;
         log_change_settings) printf '之後要修改設定，請編輯：%%s/.env';;
+        log_reload_shell) printf '如果目前這個終端還找不到 openfox，請重新開一個 shell，或執行：%%s';;
         warn_opencode_needs_setup) printf '完成安裝前，OpenFox 需要可正常運作的 opencode。';;
         warn_hosted_provider_login) printf '若你使用託管服務，安裝器會先開啟 opencode auth login。';;
         warn_local_provider_retry) printf '若你使用 LM Studio 或其他本地 provider，請先啟動後按 Enter 重試。';;
@@ -167,6 +168,7 @@ i18n_text() {
         log_install_complete) printf 'OpenFox 安装完成。';;
         log_project_directory) printf '项目目录：%%s';;
         log_change_settings) printf '之后修改配置请编辑：%%s/.env';;
+        log_reload_shell) printf '如果当前这个终端还找不到 openfox，请重新打开一个 shell，或执行：%%s';;
         warn_opencode_needs_setup) printf '完成安装前，OpenFox 需要可正常工作的 opencode。';;
         warn_hosted_provider_login) printf '如果你使用托管服务，安装器会先打开 opencode auth login。';;
         warn_local_provider_retry) printf '如果你使用 LM Studio 或其他本地 provider，请先启动后按 Enter 重试。';;
@@ -231,6 +233,7 @@ i18n_text() {
         log_install_complete) printf 'OpenFox installation is complete.';;
         log_project_directory) printf 'Project directory: %%s';;
         log_change_settings) printf 'To change settings later, edit: %%s/.env';;
+        log_reload_shell) printf 'If openfox is not found in this terminal yet, start a new shell or run: %%s';;
         warn_opencode_needs_setup) printf 'OpenFox needs a working opencode setup before installation can finish.';;
         warn_hosted_provider_login) printf 'If you use a hosted provider, the installer will open opencode auth login now.';;
         warn_local_provider_retry) printf 'If you use LM Studio or another local provider, start it now and then press Enter to retry.';;
@@ -1095,6 +1098,22 @@ refresh_user_path() {
   export PATH
 }
 
+shell_refresh_hint() {
+  local shell_name="${SHELL##*/}"
+
+  case "$shell_name" in
+    zsh)
+      printf 'source ~/.zshrc'
+      ;;
+    bash)
+      printf 'source ~/.bashrc'
+      ;;
+    *)
+      printf 'export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"'
+      ;;
+  esac
+}
+
 init_privileges() {
   if [[ $(id -u) -eq 0 ]]; then
     ROOT_PREFIX=()
@@ -1563,6 +1582,7 @@ main() {
   log "$(i18n_text 'log_install_complete')"
   log "$(i18n_printf 'log_project_directory' "$TARGET_DIR")"
   log "$(i18n_printf 'log_change_settings' "$TARGET_DIR")"
+  log "$(i18n_printf 'log_reload_shell' "$(shell_refresh_hint)")"
 }
 
 main "$@"

@@ -14,6 +14,8 @@ One command with guided setup:
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+If the current terminal still says `openfox: command not found` after installation, open a new shell or run `source ~/.zshrc`.
+
 You can force installer language with `OPENFOX_LANG=en`, `OPENFOX_LANG=zh-TW`, or `OPENFOX_LANG=zh-CN`.
 
 The installer keeps interactive prompts even with `curl | bash` by reading from your terminal (`/dev/tty`).
@@ -164,6 +166,8 @@ OpenFox 是一個本地 Telegram 機器人，會把每個聊天訊息轉送到 `
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
 
+如果安裝完成後，目前這個終端仍然顯示 `openfox: command not found`，請重新開一個 shell，或執行 `source ~/.zshrc`。
+
 你也可以用 `OPENFOX_LANG=en`、`OPENFOX_LANG=zh-TW` 或 `OPENFOX_LANG=zh-CN` 強制指定安裝語言。
 
 即使使用 `curl | bash`，安裝器也會透過終端（`/dev/tty`）保留互動式引導。
@@ -313,6 +317,8 @@ OpenFox 是一个本地 Telegram 机器人，会把每个聊天消息转发到 `
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Grasseed/OpenFox/main/scripts/install-openfox.sh | bash
 ```
+
+如果安装完成后，当前这个终端仍然显示 `openfox: command not found`，请重新打开一个 shell，或执行 `source ~/.zshrc`。
 
 你也可以用 `OPENFOX_LANG=en`、`OPENFOX_LANG=zh-TW` 或 `OPENFOX_LANG=zh-CN` 强制指定安装语言。
 
