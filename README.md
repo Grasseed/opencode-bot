@@ -88,7 +88,14 @@ cp .env.example .env
 
 2. Fill in `BOT_TOKEN`.
 
-3. Adjust `OPENCODE_MODEL`, `OPENCODE_VARIANT`, and `OPENCODE_WORKDIR` if needed.
+3. Adjust `OPENCODE_MODEL`, `OPENCODE_VARIANT`, `OPENCODE_PERMISSION_MODE`, and `OPENCODE_WORKDIR` if needed.
+
+`OPENCODE_PERMISSION_MODE` supports:
+
+- `ask`: keep `opencode` asking before it accesses directories outside `OPENCODE_WORKDIR`
+- `allow`: allow `opencode` to access external directories without prompting
+
+Run `openfox configure` later if you want to switch this mode after installation.
 
 4. Make sure `opencode` and your LM Studio endpoint already work from the shell.
 
@@ -244,7 +251,14 @@ cp .env.example .env
 
 2. 填入 `BOT_TOKEN`。
 
-3. 視需求調整 `OPENCODE_MODEL`、`OPENCODE_VARIANT`、`OPENCODE_WORKDIR`。
+3. 視需求調整 `OPENCODE_MODEL`、`OPENCODE_VARIANT`、`OPENCODE_PERMISSION_MODE`、`OPENCODE_WORKDIR`。
+
+`OPENCODE_PERMISSION_MODE` 支援：
+
+- `ask`：`opencode` 存取 `OPENCODE_WORKDIR` 以外的目錄前會先詢問
+- `allow`：`opencode` 可直接存取外部目錄，不再詢問
+
+若安裝後要切換這個模式，可再執行 `openfox configure`。
 
 4. 確認 `opencode` 與你的 LM Studio endpoint 已可在 shell 中正常運作。
 
@@ -400,7 +414,14 @@ cp .env.example .env
 
 2. 填写 `BOT_TOKEN`。
 
-3. 按需调整 `OPENCODE_MODEL`、`OPENCODE_VARIANT`、`OPENCODE_WORKDIR`。
+3. 按需调整 `OPENCODE_MODEL`、`OPENCODE_VARIANT`、`OPENCODE_PERMISSION_MODE`、`OPENCODE_WORKDIR`。
+
+`OPENCODE_PERMISSION_MODE` 支持：
+
+- `ask`：`opencode` 访问 `OPENCODE_WORKDIR` 之外的目录前会先询问
+- `allow`：`opencode` 可直接访问外部目录，不再询问
+
+如果安装后要切换这个模式，可以再运行 `openfox configure`。
 
 4. 确保 `opencode` 和你的 LM Studio endpoint 已可在 shell 中正常工作。
 

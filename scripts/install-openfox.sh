@@ -7,6 +7,7 @@ TARGET_DIR="${1:-${OPENFOX_INSTALL_DIR:-$HOME/OpenFox}}"
 BOT_TOKEN_VALUE="${BOT_TOKEN:-}"
 MODEL_VALUE="${OPENCODE_MODEL:-}"
 VARIANT_VALUE="${OPENCODE_VARIANT:-medium}"
+OPENCODE_PERMISSION_MODE_VALUE="${OPENCODE_PERMISSION_MODE:-}"
 START_NOW_VALUE="${OPENFOX_START_NOW:-yes}"
 LMSTUDIO_BASE_URL="${LMSTUDIO_BASE_URL:-http://127.0.0.1:1234/v1}"
 SKIP_OPENCODE_READY_CHECK="${OPENFOX_SKIP_OPENCODE_READY_CHECK:-0}"
@@ -44,6 +45,23 @@ normalize_install_lang() {
   esac
 }
 
+normalize_permission_mode() {
+  local value="${1:-}"
+  value="$(printf '%s' "$value" | command tr '[:upper:]' '[:lower:]')"
+
+  case "$value" in
+    allow|all|max|maximum)
+      printf 'allow'
+      ;;
+    ask|safe|'')
+      printf 'ask'
+      ;;
+    *)
+      printf 'ask'
+      ;;
+  esac
+}
+
 init_install_lang() {
   INSTALL_LANG="$(normalize_install_lang "${OPENFOX_LANG:-${LANG:-en}}")"
 }
@@ -70,6 +88,9 @@ i18n_text() {
         opt_high) printf '高';;
         opt_custom) printf '自訂';;
         prompt_custom_variant) printf '請輸入自訂 variant';;
+        title_permission_mode) printf '選擇 opencode 的外部目錄權限';;
+        opt_permission_ask) printf '需要時再詢問（較安全）';;
+        opt_permission_allow) printf '直接允許所有外部目錄（最大權限）';;
         title_model) printf '選擇 OpenFox 要使用的模型';;
         title_provider) printf '先選擇模型供應商';;
         title_model_for_provider) printf '選擇供應商 %%s 的模型';;
@@ -102,7 +123,7 @@ i18n_text() {
         log_checking_models) printf '設定 OpenFox 前先檢查 opencode 模型...';;
         log_install_complete) printf 'OpenFox 安裝完成。';;
         log_project_directory) printf '專案目錄：%%s';;
-        log_change_settings) printf '之後要修改設定，請編輯：%%s/.env';;
+        log_change_settings) printf '之後要修改設定，請編輯：%%s/.env；若要重跑引導設定可執行 `openfox configure`。';;
         log_reload_shell) printf '如果目前這個終端還找不到 openfox，請重新開一個 shell，或執行：%%s';;
         warn_opencode_needs_setup) printf '完成安裝前，OpenFox 需要可正常運作的 opencode。';;
         warn_hosted_provider_login) printf '若你使用託管服務，安裝器會先開啟 opencode auth login。';;
@@ -135,6 +156,9 @@ i18n_text() {
         opt_high) printf '高';;
         opt_custom) printf '自定义';;
         prompt_custom_variant) printf '请输入自定义 variant';;
+        title_permission_mode) printf '选择 opencode 的外部目录权限';;
+        opt_permission_ask) printf '需要时再询问（较安全）';;
+        opt_permission_allow) printf '直接允许所有外部目录（最大权限）';;
         title_model) printf '选择 OpenFox 要使用的模型';;
         title_provider) printf '先选择模型供应商';;
         title_model_for_provider) printf '选择供应商 %%s 的模型';;
@@ -167,7 +191,7 @@ i18n_text() {
         log_checking_models) printf '配置 OpenFox 前先检查 opencode 模型...';;
         log_install_complete) printf 'OpenFox 安装完成。';;
         log_project_directory) printf '项目目录：%%s';;
-        log_change_settings) printf '之后修改配置请编辑：%%s/.env';;
+        log_change_settings) printf '之后修改配置请编辑：%%s/.env；如果要重新运行引导配置，可执行 `openfox configure`。';;
         log_reload_shell) printf '如果当前这个终端还找不到 openfox，请重新打开一个 shell，或执行：%%s';;
         warn_opencode_needs_setup) printf '完成安装前，OpenFox 需要可正常工作的 opencode。';;
         warn_hosted_provider_login) printf '如果你使用托管服务，安装器会先打开 opencode auth login。';;
@@ -200,6 +224,9 @@ i18n_text() {
         opt_high) printf 'high';;
         opt_custom) printf 'custom';;
         prompt_custom_variant) printf 'Enter a custom variant';;
+        title_permission_mode) printf 'Choose opencode external-directory permissions';;
+        opt_permission_ask) printf 'Ask when needed (safer)';;
+        opt_permission_allow) printf 'Allow all external directories (maximum access)';;
         title_model) printf 'Choose the model OpenFox should use';;
         title_provider) printf 'Choose a model provider first';;
         title_model_for_provider) printf 'Choose a model from provider %%s';;
@@ -232,7 +259,7 @@ i18n_text() {
         log_checking_models) printf 'Checking opencode models before configuring OpenFox...';;
         log_install_complete) printf 'OpenFox installation is complete.';;
         log_project_directory) printf 'Project directory: %%s';;
-        log_change_settings) printf 'To change settings later, edit: %%s/.env';;
+        log_change_settings) printf 'To change settings later, edit: %%s/.env. To rerun guided setup, use `openfox configure`.';;
         log_reload_shell) printf 'If openfox is not found in this terminal yet, start a new shell or run: %%s';;
         warn_opencode_needs_setup) printf 'OpenFox needs a working opencode setup before installation can finish.';;
         warn_hosted_provider_login) printf 'If you use a hosted provider, the installer will open opencode auth login now.';;
@@ -423,6 +450,11 @@ load_existing_env_defaults() {
           VARIANT_VALUE="$value"
         fi
         ;;
+      OPENCODE_PERMISSION_MODE)
+        if [[ -z "$OPENCODE_PERMISSION_MODE_VALUE" ]]; then
+          OPENCODE_PERMISSION_MODE_VALUE="$value"
+        fi
+        ;;
     esac
   done < "$env_file"
 }
@@ -465,6 +497,21 @@ choose_variant() {
     2) VARIANT_VALUE='high' ;;
     3) VARIANT_VALUE="$(prompt_value "$(i18n_text 'prompt_custom_variant')" "$current_variant")" ;;
     4) : ;;
+  esac
+}
+
+choose_permission_mode() {
+  local options=(
+    "$(i18n_text 'opt_permission_ask')"
+    "$(i18n_text 'opt_permission_allow')"
+    "$(i18n_text 'opt_skip_for_now')"
+  )
+  local choice
+  choice="$(menu_prompt "$(i18n_text 'title_permission_mode')" "${options[@]}")"
+  case "$choice" in
+    0) OPENCODE_PERMISSION_MODE_VALUE='ask' ;;
+    1) OPENCODE_PERMISSION_MODE_VALUE='allow' ;;
+    2) : ;;
   esac
 }
 
@@ -646,6 +693,60 @@ EOF
 
 sync_local_provider_configs() {
   sync_lmstudio_provider_config
+}
+
+sync_openfox_permission_config() {
+  local config_path="$TARGET_DIR/opencode.json"
+  local permission_mode=""
+  permission_mode="$(normalize_permission_mode "$OPENCODE_PERMISSION_MODE_VALUE")"
+
+  mkdir -p "$TARGET_DIR"
+
+  OPENCODE_CONFIG_PATH="$config_path" \
+  OPENFOX_OPENCODE_PERMISSION_MODE="$permission_mode" \
+  node - <<'EOF'
+const fs = require('fs')
+
+const path = process.env.OPENCODE_CONFIG_PATH
+const permissionMode = process.env.OPENFOX_OPENCODE_PERMISSION_MODE || 'ask'
+
+if (!path) process.exit(0)
+
+let config = {}
+if (fs.existsSync(path)) {
+  try {
+    config = JSON.parse(fs.readFileSync(path, 'utf8'))
+  } catch (error) {
+    console.error(`Failed to parse ${path}: ${error.message}`)
+    process.exit(1)
+  }
+}
+
+if (!config || typeof config !== 'object' || Array.isArray(config)) config = {}
+if (typeof config.$schema !== 'string' || !config.$schema.trim()) {
+  config.$schema = 'https://opencode.ai/config.json'
+}
+if (!config.permission || typeof config.permission !== 'object' || Array.isArray(config.permission)) {
+  config.permission = {}
+}
+
+const existingExternalDirectory =
+  config.permission.external_directory &&
+  typeof config.permission.external_directory === 'object' &&
+  !Array.isArray(config.permission.external_directory)
+    ? config.permission.external_directory
+    : {}
+
+config.permission = {
+  ...config.permission,
+  external_directory: {
+    ...existingExternalDirectory,
+    '*': permissionMode
+  }
+}
+
+fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`)
+EOF
 }
 
 normalize_model_value_with_available_models() {
@@ -941,6 +1042,7 @@ run_configuration_wizard() {
     [[ -n "$MODEL_VALUE" ]] || fail "$(i18n_text 'err_model_required')"
     VARIANT_VALUE="$(prompt_value "$(i18n_text 'title_variant')" "$VARIANT_VALUE")"
     [[ -n "$VARIANT_VALUE" ]] || fail "$(i18n_text 'err_variant_required')"
+    OPENCODE_PERMISSION_MODE_VALUE="$(normalize_permission_mode "$OPENCODE_PERMISSION_MODE_VALUE")"
     return
   fi
 
@@ -957,6 +1059,7 @@ run_configuration_wizard() {
   done
 
   choose_variant
+  choose_permission_mode
   choose_start_behavior
 
   if [[ -z "$BOT_TOKEN_VALUE" ]]; then
@@ -1514,6 +1617,9 @@ ensure_opencode_ready() {
 write_env_file() {
   local env_file="$TARGET_DIR/.env"
   local state_file="$TARGET_DIR/data/state.json"
+  local permission_mode=""
+
+  permission_mode="$(normalize_permission_mode "$OPENCODE_PERMISSION_MODE_VALUE")"
 
   mkdir -p "$TARGET_DIR/data"
 
@@ -1526,6 +1632,7 @@ write_env_file() {
 BOT_TOKEN=$BOT_TOKEN_VALUE
 OPENCODE_MODEL=$MODEL_VALUE
 OPENCODE_VARIANT=$VARIANT_VALUE
+OPENCODE_PERMISSION_MODE=$permission_mode
 OPENCODE_WORKDIR=$TARGET_DIR
 STATE_FILE=$state_file
 TELEGRAM_POLL_TIMEOUT_SECONDS=30
@@ -1630,8 +1737,10 @@ main() {
 
   run_configuration_wizard "$default_model" "$models"
   [[ -n "$VARIANT_VALUE" ]] || VARIANT_VALUE='medium'
+  OPENCODE_PERMISSION_MODE_VALUE="$(normalize_permission_mode "$OPENCODE_PERMISSION_MODE_VALUE")"
 
   sync_local_provider_configs
+  sync_openfox_permission_config
   write_env_file
   validate_openfox
 
